@@ -8,8 +8,8 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import showroomBanner from "@/assets/showroom-banner.jpg.asset.json";
-import ownerPhoto from "@/assets/owner.jpg.asset.json";
+import showroomBanner from "@/assets/company.jpg.png";
+import ownerPhoto from "@/assets/owner.jpg.png";
 import {
   computeLoan,
   formatDdMmYyyy,
@@ -97,13 +97,13 @@ export default function IndexPage() {
       <header>
         <div className="relative">
           <img
-            src={showroomBanner.url}
+            src={showroomBanner}
             alt="Saravanabanks showroom"
             className="h-44 w-full rounded-2xl object-cover shadow-card ring-1 ring-gold/30"
           />
           <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-t from-espresso/70 via-transparent to-transparent" />
           <img
-            src={ownerPhoto.url}
+            src={ownerPhoto}
             alt="Proprietor of Saravanabanks"
             className="absolute bottom-0 left-4 size-20 translate-y-1/2 rounded-full object-cover ring-gold"
           />
@@ -350,7 +350,7 @@ function ResultCard({ result }: { result: LoanBreakdown }) {
         <span className="text-sm font-bold uppercase tracking-widest text-primary-foreground/90">
           Total Amount
         </span>
-        <span className="font-display text-2xl font-bold text-primary-foreground">
+        <span className="font-sans text-2xl font-bold text-primary-foreground">
           ₹ {formatInr(result.totalAmount)}
         </span>
       </div>

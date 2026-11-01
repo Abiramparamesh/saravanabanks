@@ -43,7 +43,7 @@
   --color-silver: var(--silver);
   --color-silver-deep: var(--silver-deep);
   --color-espresso: var(--espresso);
-  --font-display: var(--font-cormorant);
+  --font-display: var(--font-mulish);
   --font-sans: var(--font-mulish);
 }
 
@@ -99,20 +99,20 @@
     border-color: var(--color-border);
   }
 
-  body {
-    background-color: var(--color-background);
-    background-image:
-      radial-gradient(120% 60% at 50% -10%, oklch(0.34 0.09 22 / 55%) 0%, transparent 60%),
-      radial-gradient(90% 50% at 100% 100%, oklch(0.3 0.06 40 / 40%) 0%, transparent 55%);
-    background-attachment: fixed;
-    color: var(--color-foreground);
-    font-family: var(--font-mulish), ui-sans-serif, system-ui, sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
+body {
+  background-color: var(--color-background);
+  background-image:
+    radial-gradient(120% 60% at 50% -10%, oklch(0.34 0.09 22 / 55%) 0%, transparent 60%),
+    radial-gradient(90% 50% at 100% 100%, oklch(0.3 0.06 40 / 40%) 0%, transparent 55%);
+  background-attachment: fixed;
+  color: var(--color-foreground);
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
 
-  input {
-    font-family: inherit;
-  }
+input {
+  font-family: inherit;
+}
 }
 
 /* ---------- Shared utilities ---------- */
