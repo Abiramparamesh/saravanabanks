@@ -3,6 +3,7 @@
 // changing the Terms & Conditions list on the page.
 
 export type Metal = "gold" | "silver";
+export type Place = "kollaikkadu" | "thiruchitrambalam";
 
 /** Base monthly rates (%). */
 export const BASE_RATES: Record<Metal, number> = { gold: 2.5, silver: 4 };
@@ -10,9 +11,14 @@ export const BASE_RATES: Record<Metal, number> = { gold: 2.5, silver: 4 };
 export const GOLD_HIGH_AMOUNT = 40000;
 export const GOLD_HIGH_RATE = 2;
 
-/** Effective monthly rate (%) for a metal at a given loan amount. */
-export function getMonthlyRate(metal: Metal, amount: number): number {
+/** Effective monthly rate (%) for a metal, amount, and lending place. */
+export function getMonthlyRate(
+  metal: Metal,
+  amount: number,
+  place: Place = "kollaikkadu",
+): number {
   if (metal === "silver") return BASE_RATES.silver;
+  if (place === "thiruchitrambalam") return GOLD_HIGH_RATE;
   return amount >= GOLD_HIGH_AMOUNT ? GOLD_HIGH_RATE : BASE_RATES.gold;
 }
 
@@ -23,8 +29,12 @@ export function roundUpTo5(value: number): number {
 }
 
 /** Rounded monthly interest for a loan: amount × (rate ÷ 100), ceil to ₹5. */
-export function computeMonthlyInterest(metal: Metal, amount: number): number {
-  return roundUpTo5((amount * getMonthlyRate(metal, amount)) / 100);
+export function computeMonthlyInterest(
+  metal: Metal,
+  amount: number,
+  place: Place = "kollaikkadu",
+): number {
+  return roundUpTo5((amount * getMonthlyRate(metal, amount, place)) / 100);
 }
 
 export interface Duration {
@@ -70,6 +80,7 @@ export function computeDuration(loan: Date, ret: Date): Duration {
 
 export interface LoanBreakdown {
   metal: Metal;
+  place: Place;
   amount: number;
   rate: number;
   /** Rounded monthly interest (multiple of ₹5). */
@@ -92,8 +103,9 @@ export function computeLoan(
   amount: number,
   loanDate: Date,
   returnDate: Date,
+  place: Place = "kollaikkadu",
 ): LoanBreakdown {
-  const rate = getMonthlyRate(metal, amount);
+  const rate = getMonthlyRate(metal, amount, place);
   const monthlyInterest = roundUpTo5((amount * rate) / 100);
   const { months, extraDays, totalMonths } = computeDuration(loanDate, returnDate);
   const totalInterest = monthlyInterest * totalMonths;
@@ -101,6 +113,7 @@ export function computeLoan(
   const netInterest = Math.max(0, totalInterest - lessInterest);
   return {
     metal,
+    place,
     amount,
     rate,
     monthlyInterest,

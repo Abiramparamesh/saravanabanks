@@ -9,6 +9,7 @@ import {
   maskDateInput,
   parseDdMmYyyy,
   roundUpTo5,
+  type Place,
 } from "./interest";
 
 const d = (dd: number, mm: number, yyyy: number) => new Date(yyyy, mm - 1, dd);
@@ -29,6 +30,30 @@ describe("rate selection (gold ₹40,000 threshold, silver flat)", () => {
     expect(getMonthlyRate("silver", 500)).toBe(4);
     expect(getMonthlyRate("silver", 40000)).toBe(4);
     expect(getMonthlyRate("silver", 1000000)).toBe(4);
+  });
+});
+
+describe("place-specific rates", () => {
+  it("uses the threshold formula at Kollaikkadu", () => {
+    expect(getMonthlyRate("gold", 39999, "kollaikkadu")).toBe(2.5);
+    expect(getMonthlyRate("gold", 40000, "kollaikkadu")).toBe(2);
+    expect(getMonthlyRate("silver", 100000, "kollaikkadu")).toBe(4);
+  });
+
+  it("uses 2% gold at every amount and 4% silver at Thiruchitrambalam", () => {
+    const places: Place[] = ["thiruchitrambalam"];
+    for (const place of places) {
+      expect(getMonthlyRate("gold", 1, place)).toBe(2);
+      expect(getMonthlyRate("gold", 40000, place)).toBe(2);
+      expect(getMonthlyRate("silver", 100000, place)).toBe(4);
+    }
+  });
+
+  it("applies the selected place rate in the loan total", () => {
+    const result = computeLoan("gold", 10000, d(1, 1, 2026), d(1, 3, 2026), "thiruchitrambalam");
+    expect(result.rate).toBe(2);
+    expect(result.monthlyInterest).toBe(200);
+    expect(result.totalAmount).toBe(10200);
   });
 });
 

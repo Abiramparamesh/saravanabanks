@@ -8,8 +8,8 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import showroomBanner from "@/assets/company.jpg.png";
-import ownerPhoto from "@/assets/owner.jpg.png";
+import showroomBanner from "@/assets/showroomBanner.png";
+import ownerPhoto from "@/assets/ownerPhoto.png";
 import {
   computeLoan,
   formatDdMmYyyy,
@@ -20,11 +20,14 @@ import {
   parseDdMmYyyy,
   type LoanBreakdown,
   type Metal,
+  type Place,
 } from "@/lib/interest";
+import { Button } from "@/components/ui/button";
 
 export default function IndexPage() {
   const [loanDate, setLoanDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
+  const [place, setPlace] = useState<Place>("kollaikkadu");
   const [metal, setMetal] = useState<Metal | null>(null);
   const [amount, setAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +35,7 @@ export default function IndexPage() {
   const [termsOpen, setTermsOpen] = useState(false);
 
   const amountValue = Number(amount) || 0;
-  const effectiveRate = metal ? getMonthlyRate(metal, amountValue) : null;
+  const effectiveRate = metal ? getMonthlyRate(metal, amountValue, place) : null;
 
   function handleLoanDate(raw: string) {
     const masked = maskDateInput(raw);
@@ -87,7 +90,7 @@ export default function IndexPage() {
       setError("Enter a loan amount greater than ₹0.");
       return;
     }
-    setResult(computeLoan(metal, amountValue, loan, ret));
+    setResult(computeLoan(metal, amountValue, loan, ret, place));
     setError(null);
   }
 
@@ -172,6 +175,38 @@ export default function IndexPage() {
             />
           </Field>
 
+          {/* Lending place */}
+          <div>
+            <span className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Lending Place
+            </span>
+            <div className="grid grid-cols-2 gap-3">
+              {([
+                ["kollaikkadu", "Kollaikkadu"],
+                ["thiruchitrambalam", "Thiruchitrambalam"],
+              ] as const).map(([value, label]) => (
+                <Button
+                  key={value}
+                  type="button"
+                  variant="outline"
+                  aria-pressed={place === value}
+                  onClick={() => {
+                    setPlace(value);
+                    setError(null);
+                    setResult(null);
+                  }}
+                  className={`h-auto min-h-12 w-full whitespace-normal rounded-xl border px-3 py-3 font-display text-base leading-tight transition-colors ${
+                    place === value
+                      ? "border-gold bg-gold-gradient font-bold text-primary-foreground shadow-gold hover:text-primary-foreground"
+                      : "border-border bg-background/60 font-semibold text-foreground hover:border-gold/50 hover:text-gold"
+                  }`}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {/* Metal */}
           <div>
             <span className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -246,7 +281,7 @@ export default function IndexPage() {
       </button>
 
       {/* ---------- Terms popup ---------- */}
-      {termsOpen && <TermsDialog onClose={() => setTermsOpen(false)} />}
+      {termsOpen && <TermsDialog place={place} onClose={() => setTermsOpen(false)} />}
     </main>
   );
 }
@@ -290,7 +325,7 @@ function MetalButton({
   selected: boolean;
   onClick: () => void;
 }) {
-  const label = metal === "gold" ? "Gold · 2.5%" : "Silver · 4%";
+  const label = metal === "gold" ? "Gold" : "Silver";
   return (
     <button
       type="button"
@@ -350,7 +385,7 @@ function ResultCard({ result }: { result: LoanBreakdown }) {
         <span className="text-sm font-bold uppercase tracking-widest text-primary-foreground/90">
           Total Amount
         </span>
-        <span className="font-sans text-2xl font-bold text-primary-foreground">
+        <span className="font-display text-2xl font-bold text-primary-foreground">
           ₹ {formatInr(result.totalAmount)}
         </span>
       </div>
@@ -362,10 +397,14 @@ function ResultCard({ result }: { result: LoanBreakdown }) {
   );
 }
 
-const TERMS_RULES: { title: string; body: string }[] = [
+function getTermsRules(place: Place): { title: string; body: string }[] {
+  const rates = place === "kollaikkadu"
+    ? "Kollaikkadu: Gold 2.5% per month below ₹40,000; gold at ₹40,000 or more: 2% per month. Silver: 4% per month."
+    : "Thiruchitrambalam: Gold 2% per month at every amount. Silver: 4% per month.";
+  return [
   {
     title: "Interest rates",
-    body: "Gold: 2.5% per month. Gold loans of ₹40,000 or more (inclusive): 2% per month. Silver: 4% per month at every amount.",
+    body: rates,
   },
   {
     title: "Monthly interest rounding",
@@ -391,9 +430,11 @@ const TERMS_RULES: { title: string; body: string }[] = [
     title: "Total Amount",
     body: "Total Amount = loan amount + net interest. A same-day return charges nothing.",
   },
-];
+  ];
+}
 
-function TermsDialog({ onClose }: { onClose: () => void }) {
+function TermsDialog({ place, onClose }: { place: Place; onClose: () => void }) {
+  const termsRules = getTermsRules(place);
   return (
     <div
       role="dialog"
@@ -421,7 +462,7 @@ function TermsDialog({ onClose }: { onClose: () => void }) {
         </div>
         <div className="gold-hairline mt-3" />
         <div className="mt-4 space-y-3">
-          {TERMS_RULES.map((rule, i) => (
+          {termsRules.map((rule, i) => (
             <article key={rule.title} className="rounded-xl border border-border bg-card/70 p-4">
               <h3 className="font-display text-base font-bold text-gold">
                 {i + 1}. {rule.title}
